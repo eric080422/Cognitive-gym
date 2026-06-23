@@ -13,7 +13,9 @@ const MAX_HISTORY = 50;
 
 export const MIN_TOTAL_FOR_NORMAL = 5;
 export const MIN_TOTAL_FOR_HARD = 12;
-const RECENT_WINDOW = 8;
+
+// 🔴 충돌의 원인이었던 변수 복구 완료!
+const RECENT_WINDOW = 8; 
 
 const NORMAL_ACC = 0.75;
 const NORMAL_RECENT_ACC = 0.7;
@@ -72,7 +74,6 @@ export function pushHistory(domain: TrainingDomain, correct: boolean) {
   const newHistory = [...history, entry];
   saveHistory(domain, newHistory);
 
-  // 🔍 디버그 로그 추가 (정답/오답 기록 확인)
   console.log("[pushHistory]", {
     domain,
     correct,
@@ -80,7 +81,6 @@ export function pushHistory(domain: TrainingDomain, correct: boolean) {
   });
 }
 
-/** 특정 모듈(domain)의 현재 난이도 계산 */
 export function getCurrentDifficulty(domain: TrainingDomain): Difficulty {
   const history = loadHistory(domain);
 
@@ -126,7 +126,6 @@ export function getCurrentDifficulty(domain: TrainingDomain): Difficulty {
   return level;
 }
 
-/** 특정 모듈(domain)의 통계 + 다음 난이도 조건 */
 export function getDifficultyStats(domain: TrainingDomain) {
   const history = loadHistory(domain);
   const total = history.length;

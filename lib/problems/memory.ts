@@ -10,10 +10,10 @@ export interface SubQuestion {
 
 export interface MemoryProblem {
   type: "memory";
-  passage: string;          // 사용자가 읽고 구조화해야 할 길고 복잡한 지문
-  questions: SubQuestion[]; // 지문이 사라진 후 연속으로 풀 3개의 문제
+  passage: string;          
+  questions: SubQuestion[]; 
   difficulty: Difficulty;
-  logic: string;            // 포기하거나 다 풀었을 때 보여줄 지문 구조화 해설
+  logic: string;            
 }
 
 export function generateMemoryProblem(difficulty: Difficulty): MemoryProblem {
@@ -38,7 +38,6 @@ function generateSciencePassage(difficulty: Difficulty): MemoryProblem {
   const H2 = pickFrom(hormones.filter(h => h !== H1));
   const S = pickFrom(substances);
   
-  // 무작위 증감 방향 설정
   const e_action = Math.random() < 0.5 ? "촉진" : "억제";
   const h1_action = Math.random() < 0.5 ? "증가" : "감소";
 
@@ -91,7 +90,7 @@ function generateEconomicsPassage(difficulty: Difficulty): MemoryProblem {
   
   const liquidity = rateAction === "인상" ? "감소" : "증가";
   const value = rateAction === "인상" ? "상승" : "하락";
-  const exchange = rateAction === "인상" ? "하락" : "상승"; // 통화가치 상승 -> 환율 하락
+  const exchange = rateAction === "인상" ? "하락" : "상승"; 
   const exportEffect = exchange === "상승" ? "개선" : "악화";
 
   const passage = `[거시경제: 통화 정책과 환율의 상관관계]\n최근 ${nation}의 중앙은행은 인플레이션 방어와 경제 안정화를 위해 기준금리를 전격적으로 ${rateAction}하기로 결정했다. 일반적으로 중앙은행이 기준금리를 ${rateAction}하면 시중 은행의 대출 금리도 동반 상승/하락하게 되어, 결과적으로 시중에 풀려있는 통화량(유동성)은 ${liquidity}하게 된다. 시중 통화량이 ${liquidity}하면 해당 국가의 화폐 가치는 상대적으로 ${value}한다. 국제 외환 시장에서 자국 화폐의 가치가 ${value}하면 환율은 반대로 ${exchange}하게 된다. 환율이 ${exchange}할 경우, 해외 시장에서 자국 수출품의 가격 경쟁력이 변동되어 최종적으로 수출 기업의 채산성은 ${exportEffect}되는 결과를 낳는다.`;
@@ -167,7 +166,6 @@ function generateHumanitiesPassage(difficulty: Difficulty): MemoryProblem {
 
 /* ------------------ 🔹 공통 유틸 ------------------ */
 function pickFrom<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
-function randInt(min: number, max: number): number { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {

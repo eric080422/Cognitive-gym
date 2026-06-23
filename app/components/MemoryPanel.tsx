@@ -6,7 +6,7 @@ import DifficultyBadge from "./DifficultyBadge";
 import DifficultyStats from "./DifficultyStats";
 import { getCurrentDifficulty, pushHistory } from "@/lib/difficulty";
 import type { Difficulty } from "@/lib/difficulty";
-import type { MemoryProblem, SubQuestion } from "@/lib/problems/memory";
+import type { MemoryProblem } from "@/lib/problems/memory";
 
 type Phase = "idle" | "reading" | "questioning" | "result";
 
@@ -16,11 +16,10 @@ export default function MemoryPanel() {
   const [statsVersion, setStatsVersion] = useState(0);
   const [loading, setLoading] = useState(false);
   
-  // 훈련 흐름 제어 State
   const [phase, setPhase] = useState<Phase>("idle");
   const [timeLeft, setTimeLeft] = useState(0);
-  const [currentQIndex, setCurrentQIndex] = useState(0); // 0, 1, 2 (총 3문제)
-  const [userAnswers, setUserAnswers] = useState<boolean[]>([]); // 각 문제별 정답 여부 기록
+  const [currentQIndex, setCurrentQIndex] = useState(0); 
+  const [userAnswers, setUserAnswers] = useState<boolean[]>([]); 
   
   const [feedback, setFeedback] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,12 +51,10 @@ export default function MemoryPanel() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  // 1단계: 지문 읽기 (타이머)
   const startReading = () => {
     if (!problem) return;
     setPhase("reading");
     
-    // 복잡한 비문학 지문이므로 충분한 텍스트 인코딩 시간 부여
     let time = problem.difficulty === "easy" ? 40 : problem.difficulty === "normal" ? 30 : 20;
     setTimeLeft(time);
 
@@ -66,18 +63,16 @@ export default function MemoryPanel() {
       setTimeLeft(time);
       if (time <= 0) {
         clearInterval(timerRef.current!);
-        setPhase("questioning"); // 시간 초과 시 가차 없이 문제 풀이 진입
+        setPhase("questioning"); 
       }
     }, 1000);
   };
 
-  // 타이머가 다 되기 전에 스스로 읽기를 마친 경우
   const finishReadingEarly = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setPhase("questioning");
   };
 
-  // 2단계: 다문항 연속 풀이 처리
   const handleAnswer = (choice: string) => {
     if (!problem) return;
     
@@ -87,17 +82,14 @@ export default function MemoryPanel() {
     setUserAnswers(newAnswers);
 
     if (currentQIndex + 1 < problem.questions.length) {
-      // 다음 문제로 이동
       setCurrentQIndex(currentQIndex + 1);
     } else {
-      // 3문제를 모두 풀면 최종 결과 창으로 이동
       finishProblem(newAnswers);
     }
   };
 
   const handleGiveUp = () => {
     if (!problem || phase === "result") return;
-    // 남은 문제들을 모두 오답 처리하고 결과로 넘김
     const newAnswers = [...userAnswers];
     while(newAnswers.length < problem.questions.length) {
       newAnswers.push(false);
@@ -106,11 +98,9 @@ export default function MemoryPanel() {
     finishProblem(newAnswers);
   };
 
-  // 3단계: 최종 채점 및 기록
   const finishProblem = (finalAnswers: boolean[]) => {
     setPhase("result");
     
-    // 3문제를 모두 맞혀야만 온전한 정답(통과)으로 인정
     const isAllCorrect = finalAnswers.every(ans => ans === true);
     pushHistory("memory", isAllCorrect);
     setStatsVersion((v) => v + 1);
@@ -135,7 +125,6 @@ export default function MemoryPanel() {
         주어진 시간 동안 비문학 지문의 '논리 구조(뼈대)'를 머릿속에 스케치하세요. 지문이 사라진 후, 오직 기억만으로 <strong>연속 3문제</strong>를 돌파해야 합니다.
       </p>
 
-      {/* 🟢 PHASE 0: 시작 대기 */}
       {phase === "idle" && (
         <div style={{ height: 250, background: "#f3f4f6", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "2px dashed #d1d5db" }}>
           <p style={{ fontSize: 16, color: "#374151", fontWeight: 600, marginBottom: 20 }}>준비가 완료되면 심호흡을 하고 아래 버튼을 누르세요.</p>
@@ -145,7 +134,6 @@ export default function MemoryPanel() {
         </div>
       )}
 
-      {/* 🔴 PHASE 1: 지문 독해 (타이머) */}
       {phase === "reading" && (
         <div style={{ minHeight: 250, padding: 24, background: "#f8fafc", borderRadius: 12, display: "flex", flexDirection: "column", border: "2px solid #3b82f6", position: "relative", animation: "fadeIn 0.3s" }}>
           <div style={{ position: "absolute", top: 16, right: 20, fontSize: 24, fontWeight: 800, color: timeLeft <= 10 ? "#ef4444" : "#2563eb" }}>
@@ -161,10 +149,8 @@ export default function MemoryPanel() {
         </div>
       )}
 
-      {/* 🟠 PHASE 2: 연속 문제 풀이 */}
       {phase === "questioning" && (
         <div style={{ animation: "fadeIn 0.4s" }}>
-          {/* 상단 프로그레스 인디케이터 */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             {[0, 1, 2].map(idx => (
               <div key={idx} style={{ flex: 1, height: 8, borderRadius: 4, background: idx === currentQIndex ? "#3b82f6" : idx < currentQIndex ? "#22c55e" : "#e2e8f0" }} />
@@ -206,11 +192,9 @@ export default function MemoryPanel() {
         </div>
       )}
 
-      {/* 🔵 PHASE 3: 최종 결과 및 해설 */}
       {phase === "result" && (
         <div style={{ animation: "fadeInUp 0.4s" }}>
           
-          {/* 채점 요약표 */}
           <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
             {problem.questions.map((q, idx) => {
               const isCorrect = userAnswers[idx];
