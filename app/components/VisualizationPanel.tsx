@@ -133,7 +133,6 @@ export default function VisualizationPanel() {
           const isWrong = selectedId !== null && isSelected && choice.id !== problem.correctId;
 
           return (
-            // 🔴 1. <button> 대신 <div role="button"> 사용 (Hydration 에러 해결)
             <div
               key={choice.id}
               role="button"
@@ -176,7 +175,7 @@ export default function VisualizationPanel() {
                   onExpand={() => setExpandedChoice(choice)} 
                 />
               )}
-            </div> // 🔴 2. 닫는 태그도 </div> 로 수정
+            </div>
           );
         })}
       </div>
@@ -217,7 +216,7 @@ export default function VisualizationPanel() {
 }
 
 /* ==================================================
- * 🔴 인터랙티브 조작 기능이 통합된 팝업창(Modal) 컴포넌트
+ * 인터랙티브 조작 기능이 통합된 팝업창(Modal) 컴포넌트
  * ================================================== */
 function GraphModal({ choice, onClose }: { choice: GraphChoice; onClose: () => void }) {
   const handleBgClick = (e: React.MouseEvent) => {
@@ -263,12 +262,10 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
   const height = isExpanded ? 550 : 250;
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // 🔴 [핵심 동적 상태] 실시간으로 변하는 수리적 경계 범위를 컴포넌트 상태로 관리
   const [bounds, setBounds] = useState({ xMin: -3, xMax: 3, yMin: -3, yMax: 3 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  // 컴포넌트 초기 실행 시 또는 choice가 바뀔 때 똑똑한 초기 스케일 계산 및 주입
   useEffect(() => {
     const { xMin: initXMin, xMax: initXMax } = getXRange(choice.kind);
     const sampleCount = 100;
@@ -303,7 +300,6 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
     setBounds({ xMin: initXMin, xMax: initXMax, yMin: initYMin, yMax: initYMax });
   }, [choice]);
 
-  // 🔴 실시간 경계값 기준 데이터 포인트 재계산 연산부 (해상도 저하 zero 구현)
   const sampleCount = isExpanded ? 450 : 160;
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i < sampleCount; i++) {
@@ -313,7 +309,6 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
     points.push({ x, y });
   }
 
-  // 🔴 인터랙티브 제어 마우스 이벤트 핸들러 패널
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isExpanded) return;
     setIsDragging(true);
@@ -323,7 +318,6 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isExpanded || !isDragging) return;
 
-    // 스크린 픽셀 이동 거리를 실제 함수 공간의 거리 벡터로 즉시 변환
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
 
@@ -333,7 +327,7 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
     setBounds((prev) => ({
       xMin: prev.xMin - mathDeltaX,
       xMax: prev.xMax - mathDeltaX,
-      yMin: prev.yMin + mathDeltaY, // SVG와 수학 y축 좌표계 반전 보정 반영
+      yMin: prev.yMin + mathDeltaY,
       yMax: prev.yMax + mathDeltaY,
     }));
 
@@ -344,31 +338,25 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
     setIsDragging(false);
   };
 
-  // 🔴 커서 위치 기준 수학적 줌(Zoom) 최적화 제어 장치
   const handleWheel = (e: React.WheelEvent) => {
     if (!isExpanded || !svgRef.current) return;
     e.preventDefault();
 
-    // 마우스 포인터의 현재 픽셀 좌표 추출
     const rect = svgRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // 전체 해상도 대비 마우스 포인터 가중치 계산
     const fracX = mouseX / width;
     const fracY = (height - mouseY) / height;
 
-    // 현재 포인터 밑에 위치한 고정 수학 좌표(Anchor Point) 추적 역산
     const currentAnchorX = bounds.xMin + fracX * (bounds.xMax - bounds.xMin);
     const currentAnchorY = bounds.yMin + fracY * (bounds.yMax - bounds.yMin);
 
-    // 휠 방향에 따른 가변 확대 배율 매칭
     const zoomFactor = e.deltaY > 0 ? 1.15 : 0.85;
 
     const newXSpan = (bounds.xMax - bounds.xMin) * zoomFactor;
     const newYSpan = (bounds.yMax - bounds.yMin) * zoomFactor;
 
-    // 마우스가 가리키던 자리를 기준으로 윈도우 좌표 재편성
     setBounds({
       xMin: currentAnchorX - fracX * newXSpan,
       xMax: currentAnchorX + (1 - fracX) * newXSpan,
@@ -381,7 +369,6 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
     return <div style={{ width, height, borderRadius: 8, border: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#9ca3af" }}>계산 중...</div>;
   }
 
-  // 화면 스케일링 매퍼
   const toCX = (x: number) => ((x - bounds.xMin) / (bounds.xMax - bounds.xMin)) * width;
   const toCY = (y: number) => height - ((y - bounds.yMin) / (bounds.yMax - bounds.yMin)) * height;
 
@@ -392,15 +379,31 @@ function MiniGraph({ choice, index, onExpand, isExpanded = false }: { choice: Gr
   const hasYAxis = bounds.xMin <= 0 && bounds.xMax >= 0;
   const yAxisX = toCX(0);
 
-  // 실시간 범위 내부 특징점만 선별 가공
   const featurePoints: FeaturePoint[] = [];
   const extrema: {x: number, y: number, type: string}[] = [];
   for (let i = 1; i < points.length - 1; i++) {
     const p0 = points[i - 1]; const p1 = points[i]; const p2 = points[i + 1];
     const slope1 = (p1.y - p0.y) / (p1.x - p0.x); const slope2 = (p2.y - p1.y) / (p2.x - p1.x);
     if (Math.abs(slope1) < 1e-3 && Math.abs(slope2) < 1e-3) continue;
-    if (slope1 > 0 && slope2 < 0) extrema.push({x: p1.x, y: p1.y, type: "극대"});
-    else if (slope1 < 0 && slope2 > 0) extrema.push({x: p1.x, y: p1.y, type: "극소"});
+    
+    if ((slope1 > 0 && slope2 < 0) || (slope1 < 0 && slope2 > 0)) {
+      // 🔴 수정 1: 샘플링 포인트 대신 국소 정밀 탐색(Local Search)을 통해 수학적으로 정확한 극값을 찾습니다.
+      let bestX = p1.x;
+      let bestY = p1.y;
+      const isMax = slope1 > 0;
+      const step = (p2.x - p0.x) / 100; // 극값 발견 구간을 100등분하여 정밀 탐색
+
+      for (let tx = p0.x; tx <= p2.x + step / 2; tx += step) {
+        const ty = evalFunction(choice, tx);
+        if (ty != null && Number.isFinite(ty)) {
+          if (isMax ? ty > bestY : ty < bestY) {
+            bestY = ty;
+            bestX = tx;
+          }
+        }
+      }
+      extrema.push({ x: bestX, y: bestY, type: isMax ? "극대" : "극소" });
+    }
   }
 
   extrema.slice(0, 4).forEach(ext => {
@@ -580,7 +583,8 @@ export function evalFunction(choice: GraphChoice, x: number): number | null {
 }
 
 function formatNumberLabel(v: number): string {
-  const EPS = 0.05; 
+  // 🔴 수정 2: 오차 허용 범위를 0.05에서 0.002로 엄격하게 줄여서 무리한 분수 변환을 방지합니다.
+  const EPS = 0.002; 
   if (Math.abs(v) < EPS) return "0";
 
   const bases = [
@@ -593,7 +597,15 @@ function formatNumberLabel(v: number): string {
     { val: Math.PI / 2, str: "π/2" },
     { val: -Math.PI / 2, str: "-π/2" },
     { val: Math.PI * 2, str: "2π" },
-    { val: -Math.PI * 2, str: "-2π" }
+    { val: -Math.PI * 2, str: "-2π" },
+    
+    // 🔴 수정 3: sin(e^x) 그래프를 위해 딕셔너리에 로그/삼각함수 특수값(ln(π/2), sin(1) 등)을 추가했습니다.
+    { val: Math.log(Math.PI / 2), str: "ln(π/2)" },
+    { val: Math.log(3 * Math.PI / 2), str: "ln(3π/2)" },
+    { val: Math.log(5 * Math.PI / 2), str: "ln(5π/2)" },
+    { val: Math.log(7 * Math.PI / 2), str: "ln(7π/2)" },
+    { val: Math.sin(1), str: "sin(1)" },
+    { val: Math.cos(1), str: "cos(1)" }
   ];
 
   for (let offset = -3; offset <= 3; offset++) {
@@ -608,7 +620,8 @@ function formatNumberLabel(v: number): string {
     }
   }
 
-  for (let den = 1; den <= 4; den++) {
+  // 분모를 6까지 확인하여 분수를 좀 더 안정적으로 잡아냅니다.
+  for (let den = 1; den <= 6; den++) {
     const num = Math.round(v * den);
     if (Math.abs(v - num / den) < EPS) {
       if (den === 1) return String(num);
