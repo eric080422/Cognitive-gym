@@ -23,7 +23,7 @@ export default function HomePage() {
       <header style={{ textAlign: "center", marginBottom: 16 }}>
         <h1 style={{ margin: 0, fontSize: 28 }}>Cognitive Gym MVP</h1>
         <p style={{ margin: "4px 0 0", fontSize: 14, color: "#6b7280" }}>
-          시각화 · 패턴 인식 · 작업기억 훈련 데모
+          시각화 · 패턴 인식 · 작업기억 훈련
         </p>
       </header>
 
