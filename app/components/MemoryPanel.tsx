@@ -109,7 +109,7 @@ export default function MemoryPanel() {
     if (isAllCorrect) {
       setFeedback("🎉 완벽합니다! 복잡한 지문의 뼈대를 잃지 않고 3문제를 모두 추론해 내셨습니다!");
     } else {
-      setFeedback(`아쉽습니다. (정답: ${correctCount}/3) 질문이 넘어가는 과정에서 정보의 간섭(Interference)이 발생하여 구조가 무너진 것 같습니다.`);
+      setFeedback(`아쉽습니다. (정답: ${correctCount}/3) 질문이 넘어가는 과정에서 기억을 잃으셨습니다.`);
     }
   };
 
@@ -117,7 +117,7 @@ export default function MemoryPanel() {
 
   return (
     <div>
-      <h2 style={{ marginTop: 0 }}>수능형 1지문 다문항 추론 (작업기억 한계 훈련)</h2>
+      <h2 style={{ marginTop: 0 }}>간단한 작업 기억 훈련</h2>
       <div style={{ marginBottom: 8 }}><DifficultyBadge difficulty={problem.difficulty ?? difficulty} /></div>
       <DifficultyStats domain="memory" version={statsVersion} />
 
